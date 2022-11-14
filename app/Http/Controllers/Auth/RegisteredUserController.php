@@ -27,7 +27,7 @@ class RegisteredUserController extends Controller
     /**
      * Handle an incoming registration request.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      *
      * @throws \Illuminate\Validation\ValidationException
@@ -36,19 +36,24 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'email' => ['required', 'string', 'email', 'max:255', function ($attribute, $value, $fail) {
+                if (User::find($value)) {
+                    $fail('The ' . $attribute . ' has already been taken.');
+                }
+            }],
+            'password' => 'required|string|confirmed|min:8',
         ]);
 
-        $user = User::create([
+        $user = new User([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
-
-        event(new Registered($user));
+        $user->save();
 
         Auth::login($user);
+
+        event(new Registered($user));
 
         return redirect(RouteServiceProvider::HOME);
     }

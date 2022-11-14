@@ -9,14 +9,13 @@ use Laravel\Sanctum\HasApiTokens;
 use Kitar\Dynamodb\Model\Model;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-use Illuminate\Support\Str;
 
 class User extends Model implements AuthenticatableContract
 {
     use HasApiTokens, HasFactory, Notifiable, Authenticatable;
 
     protected $table = 'Users';
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'email';
 
     /**
      * The attributes that are mass assignable.
@@ -24,7 +23,6 @@ class User extends Model implements AuthenticatableContract
      * @var array<int, string>
      */
     protected $fillable = [
-        'id',
         'name',
         'email',
         'password',
@@ -48,13 +46,4 @@ class User extends Model implements AuthenticatableContract
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-    public static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->id = Str::uuid()->toString();
-        });
-    }
 }
